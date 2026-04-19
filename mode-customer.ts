@@ -32,7 +32,7 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
     }
 
     await at.prepareKnowledge(`Current date and time: ${new Date().toISOString()}`);
-    if (!is_escalated && await at.askLLM(`Apakah customer secara ingin mengeskalasi percakapan ke customer service manusia (human support) sesuai aturan eskalasi?`, z.boolean())) {
+    if (!is_escalated && await at.askLLM(`Apakah customer secara ingin mengeskalasi percakapan ke customer service manusia (human support) sesuai aturan eskalasi dan telah mengkonfirmasi ingin eskalasi?`, z.boolean())) {
       if (!whatsapp_escalation.phone_number) {
         at.print(await at.askLLM(`Beritahu customer kalau chatbot ini belum diberikan nomor whatsapp utk melakukan eskalasi.`), true);
         return;
@@ -44,8 +44,8 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
             `Ada yang ingin melakukan eskalasi percakapan`,
             '',
             `*Pelanggan*`,
-            `Nama: ${user.name}`,
-            `Nomor WA: ${user.pn}`,
+            `Nama: ${user.name || '<tanpa nama>'}`,
+            `Nomor WA: ${user.pn.split('@')?.[0]}`,
             '',
             `*Ringkasan*`,
             summary
@@ -54,6 +54,7 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
         }
         at.print(await at.askLLM(`Beritahu user customer service manusia akan menangani percakapan setelah ini, mohon menunggu hingga customer service manusia membalas.`), true);
         is_escalated = true;
+        at.waha_disable_seen_and_typing = true;
         return;
       }
     }
@@ -61,7 +62,6 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
       `User request: "${instruction}". Respond user request based on given knowledge.`,
       (s: string) => at.print(s)
     );
-    at.waha_disable_seen_and_typing = true;
     at.print('', true);
   });
   const summary = await at.askLLM(`Buatkan ringkasan dari percakapan ini maksimal 2 paragraf`);
