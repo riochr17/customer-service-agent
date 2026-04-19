@@ -34,7 +34,18 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
     }
 
     await at.prepareKnowledge(`Current date and time: ${new Date().toISOString()}`);
-    const escalated_data = await at.askLLM(`Apakah pelanggan ingin mengeskalasi percakapan ke customer service manusia (human support) sesuai aturan eskalasi dan telah mengkonfirmasi ingin eskalasi?`, z.object({ is_user_want_escalation: z.boolean()}));
+    const escalated_data = await at.askLLM(`
+      Apakah pelanggan ingin mengeskalasi percakapan ke customer \
+      service manusia (human support) sesuai aturan eskalasi dan \
+      telah mengkonfirmasi ingin eskalasi? Anggap sebagai KONFIRMASI \
+      eskalasi hanya jika user mengatakan: "ya", "iya", "mau", "tolong \
+      eskalasi", atau kalimat setara. Anggap sebagai PENOLAKAN jika user \
+      mengatakan: "tidak", "nggak", "tidak usah", "nggak usah", "gaaush"\
+      , atau variasinya. Jika user menolak (termasuk "gaaush"), MAKA \
+      DILARANG melakukan eskalasi dalam kondisi apapun. Jika tidak \
+      ada konfirmasi eksplisit, jangan eskalasi. Jika user menolak, \
+      balas dengan sopan bahwa eskalasi tidak jadi dilakukan. Aturan \
+      penolakan SELALU mengalahkan aturan lain.`, z.object({ is_user_want_escalation: z.boolean()}));
     if (!is_escalated && escalated_data.is_user_want_escalation) {
       if (!whatsapp_escalation.phone_number) {
         at.print(await at.askLLM(`Beritahu customer kalau chatbot ini belum diberikan nomor whatsapp utk melakukan eskalasi.`), true);
