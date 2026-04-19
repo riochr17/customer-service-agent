@@ -8,12 +8,6 @@ export const whatsapp_escalation = {
 };
 
 export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
-  await at.prepareKnowledge([
-    '**Aturan Eskalasi ke Customer Service Manusia (Human Support)**',
-    process.env.ESCALATION_RULE || 'Customer dapat melakukan eskalasi kapanpun dalam kondisi apapun',
-    'sebelum meneruskan eskalasi konfirmasi lagi ke pelanggan apakah mereka benar-benar ingin melakukan eskalasi',
-    'jika pelanggan menjawab tidak, maka tidak perlu ekalasi (false)'
-  ].join('\n'));
   let is_escalated = false;
   if (at.source.type == 'whatsapp-waha') {
     await at.addInformation(`Ini adalah percakapan dengan customer melalui whatsapp dengan data user = ${JSON.stringify(at.source.from_user || {})}`)
@@ -24,6 +18,12 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
   await at.prepareKnowledge(`Your name is ${name}.`);
   await at.prepareKnowledge(process.env.AGENT_BRIEF || 'No brief');
   await at.prepareKnowledge(`Current date and time: ${new Date().toISOString()}`);
+  await at.prepareKnowledge([
+    '**Aturan Eskalasi ke Customer Service Manusia (Human Support)**',
+    process.env.ESCALATION_RULE || 'Customer dapat melakukan eskalasi kapanpun dalam kondisi apapun',
+    'sebelum meneruskan eskalasi konfirmasi lagi ke pelanggan apakah mereka benar-benar ingin melakukan eskalasi',
+    'jika pelanggan menjawab tidak, maka tidak perlu ekalasi (false)'
+  ].join('\n'));
 
   at.print(await at.askLLM(`Berikan sapaan singkat ke customer dan jawab pertanyaannya jika ada dengan singkat`), true);
   await loop(async () => {
