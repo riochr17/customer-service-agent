@@ -42,27 +42,6 @@ export namespace SimpleStorage {
     cached_items.push({ id: filepath, vector: data.vector });
   }
 
-  export async function storeTelegramHistory(data: ItemStorageData) {
-    await createFolderIfNotExist();
-    const filename = _.snakeCase(`tg_${data.id}-${moment(data.date_iso).format('YYYY-MM-DD-HH-mm-ss')}.json`);
-    const filepath = path.resolve(folder_path, filename);
-    await fs.promises.writeFile(filepath, JSON.stringify(data, null, 2));
-    cached_items.push({ id: filepath, vector: data.vector });
-  }
-
-  export async function getWhatsAppListLogFilenames(_phone_number: string): Promise<string[]> {
-    await createFolderIfNotExist();
-    const phone_number = cleanPhoneNumberID(_phone_number);
-    const files = await fs.promises.readdir(folder_path);
-    return files.filter(file => file.includes(phone_number));
-  }
-
-  export async function getTelegramListLogFilenames(username: string): Promise<string[]> {
-    await createFolderIfNotExist();
-    const files = await fs.promises.readdir(folder_path);
-    return files.filter(file => file.includes(username));
-  }
-
   export async function getSpecificLog(log_filename: string): Promise<string> {
     await createFolderIfNotExist();
     const filepath = path.resolve(folder_path, log_filename);
