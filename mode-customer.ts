@@ -10,7 +10,9 @@ export const whatsapp_escalation = {
 export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
   await at.prepareKnowledge([
     '**Aturan Eskalasi ke Customer Service Manusia (Human Support)**',
-    process.env.ESCALATION_RULE || 'Customer dapat melakukan eskalasi kapanpun dalam kondisi apapun'
+    process.env.ESCALATION_RULE || 'Customer dapat melakukan eskalasi kapanpun dalam kondisi apapun',
+    'sebelum meneruskan eskalasi konfirmasi lagi ke pelanggan apakah mereka benar-benar ingin melakukan eskalasi',
+    'jika pelanggan menjawab tidak, maka tidak perlu ekalasi (false)'
   ].join('\n'));
   let is_escalated = false;
   if (at.source.type == 'whatsapp-waha') {
@@ -32,7 +34,7 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
     }
 
     await at.prepareKnowledge(`Current date and time: ${new Date().toISOString()}`);
-    if (!is_escalated && await at.askLLM(`Apakah customer secara ingin mengeskalasi percakapan ke customer service manusia (human support) sesuai aturan eskalasi dan telah mengkonfirmasi ingin eskalasi?`, z.boolean())) {
+    if (!is_escalated && await at.askLLM(`Apakah pelanggan ingin mengeskalasi percakapan ke customer service manusia (human support) sesuai aturan eskalasi dan telah mengkonfirmasi ingin eskalasi?`, z.boolean())) {
       if (!whatsapp_escalation.phone_number) {
         at.print(await at.askLLM(`Beritahu customer kalau chatbot ini belum diberikan nomor whatsapp utk melakukan eskalasi.`), true);
         return;
@@ -52,7 +54,7 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
           ].join('\n');
           await WAHATools.sendMessage(`${whatsapp_escalation.phone_number}@c.us`, escalation_message, process.env.WAHA_CONFIG_BASEURL || '', process.env.WAHA_CONFIG_APIKEY || '');
         }
-        at.print(await at.askLLM(`Beritahu user customer service manusia akan menangani percakapan setelah ini, mohon menunggu hingga customer service manusia membalas.`), true);
+        at.print(await at.askLLM(`Beritahu pelanggan bahwa customer service manusia akan menangani percakapan setelah ini, mohon menunggu hingga customer service manusia membalas.`), true);
         is_escalated = true;
         at.waha_disable_seen_and_typing = true;
         return;
