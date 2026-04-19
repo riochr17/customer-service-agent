@@ -1,6 +1,6 @@
 {
-  "name": "simple-agent",
-  "version": "1.0.9",
+  "name": "customer-service-agent",
+  "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
