@@ -1,7 +1,7 @@
 require('dotenv').config();
-import { AgentTool, OpenAILLM, startAgentWAHA } from "@ssww.one/framework";
+import { AgentTool, OpenAILLM, startAgentWAHA, WAHATools } from "@ssww.one/framework";
 import { agentOwner } from "./mode-owner";
-import { agentCustomer, whatsapp_escalation } from "./mode-customer";
+import { agentCustomer, list_ingore_numbers, whatsapp_escalation } from "./mode-customer";
 
 console.log({
   CHATGPT_APIKEY: process.env.CHATGPT_APIKEY,
@@ -11,15 +11,26 @@ console.log({
   WAHA_CONFIG_APIKEY: process.env.WAHA_CONFIG_APIKEY,
   WAHA_CALLBACK_PORT: process.env.WAHA_CALLBACK_PORT,
   WHATSAPP_NUMBER_ESCALATION: process.env.WHATSAPP_NUMBER_ESCALATION,
+  WHATSAPP_NUMBER_LEADS_CONVERSION: process.env.WHATSAPP_NUMBER_LEADS_CONVERSION,
   ESCALATION_RULE: process.env.ESCALATION_RULE,
+  LEADS_CONVERSION_RULE: process.env.LEADS_CONVERSION_RULE,
   NAME: process.env.NAME,
   AGENT_BRIEF: process.env.AGENT_BRIEF,
+  INGORE_NUMBERS: process.env.INGORE_NUMBERS
 });
 
 const llm = new OpenAILLM();
 export async function agent(at: AgentTool) {
   switch (at.source.type) {
     case "whatsapp-waha":
+      for (const n of list_ingore_numbers) {
+        if (at.source.from_user.pn.includes(n)) {
+          break;
+        }
+      }
+
+      await WAHATools.markSeen(at.source.from_user.pn, process.env.WAHA_CONFIG_BASEURL || '', process.env.WAHA_CONFIG_APIKEY || '');
+      await WAHATools.indicatorStartTyping(at.source.from_user.pn, process.env.WAHA_CONFIG_BASEURL || '', process.env.WAHA_CONFIG_APIKEY || '');
       if (whatsapp_escalation.phone_number && at.source.from_user?.pn.includes(whatsapp_escalation.phone_number)) {
         await agentOwner(at, llm);
       } else {
@@ -31,4 +42,7 @@ export async function agent(at: AgentTool) {
   }
 }
 
-startAgentWAHA(agent, { llm });
+startAgentWAHA(agent, {
+  llm,
+  initialValueDisableAutoSeenTyping: true
+});
