@@ -54,15 +54,6 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
   at.print(await at.askLLM(`Berikan sapaan singkat ke customer dan jawab pertanyaannya jika ada dengan singkat`), true);
   await loop(async () => {
     const instruction = await at.waitForUserInstruction();
-
-    if (at.source.type == 'whatsapp-waha') {
-      for (const n of list_ingore_numbers) {
-        if (at.source.from_user.pn.includes(n)) {
-          return;
-        }
-      }
-    }
-    
     if (at.is_last_waha_message_from_me) {
       console.log(`Session has been escalated manually`);
       at.waha_disable_seen_and_typing = true;

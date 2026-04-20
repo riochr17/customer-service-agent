@@ -23,10 +23,16 @@ const llm = new OpenAILLM();
 export async function agent(at: AgentTool) {
   switch (at.source.type) {
     case "whatsapp-waha":
+      let ignore_message = false;
       for (const n of list_ingore_numbers) {
         if (at.source.from_user.pn.includes(n)) {
+          ignore_message = true;
           break;
         }
+      }
+      if (ignore_message) {
+        console.log(`Message ignored since its in ignore list numbers`);
+        break;
       }
 
       await WAHATools.markSeen(at.source.from_user.pn, process.env.WAHA_CONFIG_BASEURL || '', process.env.WAHA_CONFIG_APIKEY || '');
