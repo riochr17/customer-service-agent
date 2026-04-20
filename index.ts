@@ -37,6 +37,7 @@ export async function agent(at: AgentTool) {
 
       await WAHATools.markSeen(at.source.from_user.pn, process.env.WAHA_CONFIG_BASEURL || '', process.env.WAHA_CONFIG_APIKEY || '');
       await WAHATools.indicatorStartTyping(at.source.from_user.pn, process.env.WAHA_CONFIG_BASEURL || '', process.env.WAHA_CONFIG_APIKEY || '');
+      at.waha_disable_seen_and_typing = false;
       if (whatsapp_escalation.phone_number && at.source.from_user?.pn.includes(whatsapp_escalation.phone_number)) {
         await agentOwner(at, llm);
       } else {
