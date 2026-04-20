@@ -20,7 +20,7 @@ const llm = new OpenAILLM();
 export async function agent(at: AgentTool) {
   switch (at.source.type) {
     case "whatsapp-waha":
-      if (at.source.from_user?.pn.includes(whatsapp_escalation.phone_number)) {
+      if (whatsapp_escalation.phone_number && at.source.from_user?.pn.includes(whatsapp_escalation.phone_number)) {
         await agentOwner(at, llm);
       } else {
         await agentCustomer(at, llm);

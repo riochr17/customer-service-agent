@@ -17,7 +17,18 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
   const name = process.env.NAME || 'ABC Agent';
   await at.prepareKnowledge(`Your name is ${name}.`);
   await at.prepareKnowledge(process.env.AGENT_BRIEF || 'No brief');
-  await at.prepareKnowledge(`Current date and time: ${new Date().toISOString()}`);
+
+  const datestring = new Date().toLocaleString('id-ID', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Jakarta',
+    timeZoneName: 'long'
+  });
+  await at.prepareKnowledge(`Current date and time: ${datestring}`);
   await at.prepareKnowledge([
     '**Aturan Eskalasi ke Customer Service Manusia (Human Support)**',
     process.env.ESCALATION_RULE || 'Customer dapat melakukan eskalasi kapanpun dalam kondisi apapun',
@@ -28,12 +39,27 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
   at.print(await at.askLLM(`Berikan sapaan singkat ke customer dan jawab pertanyaannya jika ada dengan singkat`), true);
   await loop(async () => {
     const instruction = await at.waitForUserInstruction();
+    if (at.is_last_waha_message_from_me) {
+      console.log(`Session has been escalated manually`);
+      at.waha_disable_seen_and_typing = true;
+      is_escalated = true;
+    }
     
     if (is_escalated) {
       return;
     }
 
-    await at.addInformation(`Current date and time: ${new Date().toISOString()}`);
+    const datestring = new Date().toLocaleString('id-ID', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      timeZone: 'Asia/Jakarta',
+      timeZoneName: 'long'
+    });
+    await at.addInformation(`Current date and time: ${datestring}`);
     const escalated_data = await at.askLLM(`Apakah pelanggan ingin mengeskalasi percakapan ke customer service manusia (human support) sesuai aturan eskalasi?.`, z.object({ is_user_want_escalation: z.boolean()}));
     const escalated_data_confirmed = await at.askLLM(`Apakah pelanggan sudah menyatakan "ya" bahwa ingin mengeskalasi ke customer service manusia (human support)? Harus ada pernyataan secara explisit "ya" atau yang setara`, z.object({ is_confirmed: z.boolean()}));
     if (!is_escalated && escalated_data.is_user_want_escalation && escalated_data_confirmed.is_confirmed) {
