@@ -69,10 +69,13 @@ export async function agentCustomer(at: AgentTool, llm: OpenAILLM) {
     await at.addInformation(`[User message]: ${instruction}`);
     switch (type) {
       case "LEADS":
-        const old_leads = await at.askLLM(`Apakah pelanggan sblmnya sudah berhasil melakukan pemesanan sblmnya (dalam artian sudah dikirim ke pemilik usaha) dan ini masih dalam konteks pemesanan yang sebelumnya atau ini yg baru? (kalau slmbnya sudah berhasul berhasil dan sama seperti sebelumnya) -> true, kalau baru -> false`, z.object({ is_same_leads: z.boolean() }));
-        if (old_leads.is_same_leads) {
-          console.log(`Leads yang sama`);
-          break;
+        const old_leads_1 = await at.askLLM(`Apakah pelanggan sblmnya sudah berhasil melakukan pemesanan dan kamu sudah menginfokan ke tim laundry?`, z.object({ has_complete_order: z.boolean() }));
+        if (old_leads_1.has_complete_order) {
+          const old_leads_2 = await at.askLLM(`Apakah ini pemesanan yang sama dengan sebelumnya yang berhasil atau ini pemesanan baru? kalau benar -> true, kalau order baru -> false`, z.object({ is_same_leads: z.boolean() }));
+          if (old_leads_2.is_same_leads) {
+            console.log(`Leads yang sama`);
+            break;
+          }
         }
         const leads_conversion_data = await at.askLLM(`Apakah pelanggan ingin melakukan pembelian/pemesanan barang sesuai aturan konversi leads?.`, z.object({ is_leads_conversion: z.boolean()}));
         const leads_conversion_data_confirmed = await at.askLLM(`Apakah pelanggan sudah menyatakan "ya" dan mengonfirmasi bahwa ingin melakukan pemesanan/pembeliannya? Harus ada pernyataan secara explisit "ya" atau yang setara`, z.object({ is_confirmed: z.boolean()}));

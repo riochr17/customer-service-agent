@@ -23,6 +23,9 @@ const llm = new OpenAILLM();
 export async function agent(at: AgentTool) {
   switch (at.source.type) {
     case "whatsapp-waha":
+      if (at.is_last_waha_message_from_me) {
+        break;
+      }
       let ignore_message = false;
       for (const n of list_ingore_numbers) {
         if (at.source.from_user.pn.includes(n)) {
