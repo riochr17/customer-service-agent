@@ -55,5 +55,5 @@ export async function agent(at: AgentTool) {
 startAgentWAHA(agent, {
   llm,
   initialValueDisableAutoSeenTyping: true,
-  timeout: 5 * 60 * 1000 // 5 menit
+  timeout: 30 * 60 * 1000 // 30 menit
 });
